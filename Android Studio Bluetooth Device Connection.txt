@@ -1,0 +1,73 @@
+public class blueDeviceAvailableListActivity extends Activity {
+    private static final boolean D = true; 
+    Button tlbutton;
+    TextView textView1;
+    public static String EXTRA_blueDevice_ADDRESS = "blueDevice_address";
+    private BluetoothAdapter myBluetoothAdapter;
+    private ArrayAdapter<String> myPairedBluetoothblueDevicesArray;
+ 
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.blueDevice_list);
+    }
+     
+    @Override
+    public void onResume() 
+    {
+        super.onResume();
+        checkBTState();
+        textView1 = (TextView) findViewById(R.id.connecting);
+        textView1.setTextSize(40);
+        textView1.setText(" ");
+        myPairedBluetoothblueDevicesArray = new ArrayAdapter<String>(this, R.layout.blueDevice_name);
+        ListView bluetoothPairedListView = (ListView) findViewById(R.id.paired_blueDevices);
+        bluetoothPairedListView.setAdapter(myPairedBluetoothblueDevicesArray);
+        bluetoothPairedListView.setOnItemClickListener(myblueDeviceClickListener);
+        myBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+ 
+       
+        Set<BluetoothblueDevice> pairedBluetoothblueDevices = myBluetoothAdapter.getBondedblueDevices();
+        
+        if (pairedBluetoothblueDevices.size() > 0) {
+            findViewById(R.id.title_paired_blueDevices).setVisibility(View.VISIBLE);
+            for (BluetoothblueDevice blueDevice : pairedBluetoothblueDevices) {
+                myPairedBluetoothblueDevicesArray.add(blueDevice.getName() + "\n" + blueDevice.getAddress());
+            }
+        } else {
+            String numberOfDevice = getResources().getText(R.string.none_paired).toString();
+            myPairedBluetoothblueDevicesArray.add(numberOfDevice);
+        }
+  }
+
+    private OnItemClickListener myblueDeviceClickListener = new OnItemClickListener() {
+        public void onItemClick(AdapterView<?> av, View v, int arg2, long arg3) {
+ 
+            textView1.setText("Connecting...");
+    
+            String details = ((TextView) v).getText().toString();
+            String address = details.substring(details.length() - 17);
+ 
+   
+            Intent myIntent = new Intent(blueDeviceListActivity.this, MainActivity.class);
+            myIntent.putExtra(EXTRA_blueDevice_ADDRESS, address);
+            startActivity(myIntent);   
+        }
+    };
+ 
+    private void checkBTState() {
+       
+         myBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if(myBluetoothAdapter==null) { 
+            Toast.makeText(getBaseContext(), "blueDevice does not support Bluetooth", Toast.LENGTH_SHORT).show();
+        } else {
+          if (myBluetoothAdapter.isEnabled()) {
+
+          } else {
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, 1);
+  
+            }
+          }
+        }
+}
